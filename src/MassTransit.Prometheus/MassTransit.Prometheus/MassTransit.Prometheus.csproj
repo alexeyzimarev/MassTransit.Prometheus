@@ -2,11 +2,18 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
+
+        <Version>0.1.0</Version>
+        <Authors>Alexey Zimarev</Authors>
+        <PackageProjectUrl>https://github.com/alexeyzimarev/MassTransit.Prometheus</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/alexeyzimarev/MassTransit.Prometheus.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <Description>Metrics collector for MassTransit consumers for Prometheus</Description>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="MassTransit" Version="5.1.5" />
-      <PackageReference Include="Nexogen.Libraries.Metrics.Extensions" Version="3.0.1" />
+        <PackageReference Include="MassTransit" Version="5.1.5"/>
+        <PackageReference Include="Nexogen.Libraries.Metrics.Extensions" Version="3.0.1"/>
     </ItemGroup>
 
 </Project>
