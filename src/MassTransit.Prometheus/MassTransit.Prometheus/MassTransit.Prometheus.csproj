@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="MassTransit" Version="5.1.5" />
+      <PackageReference Include="Nexogen.Libraries.Metrics.Extensions" Version="3.0.1" />
+    </ItemGroup>
+
+</Project>
