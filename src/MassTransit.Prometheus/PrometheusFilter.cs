@@ -1,13 +1,10 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using GreenPipes;
-using Nexogen.Libraries.Metrics;
-using Nexogen.Libraries.Metrics.Extensions;
 
 namespace MassTransit.Prometheus
 {
-    public class PrometheusFilter<T> : IFilter<T>
+    internal class PrometheusFilter<T> : IFilter<T>
         where T : class, ConsumeContext
     {
         public async Task Send(T context, IPipe<T> next)
@@ -17,10 +14,7 @@ namespace MassTransit.Prometheus
             consumerMetrics.CountMessage();
             try
             {
-                using (consumerMetrics.ConsumeTimer())
-                {
-                    await next.Send(context).ConfigureAwait(false);
-                }
+                await consumerMetrics.Measure(() => next.Send(context)).ConfigureAwait(false);
 
                 consumerMetrics.MeasureCriticalTime();
             }

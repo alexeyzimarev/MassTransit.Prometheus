@@ -1,4 +1,7 @@
-using Nexogen.Libraries.Metrics;
+using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using Prometheus;
 
 namespace MassTransit.Prometheus
 {
@@ -16,48 +19,62 @@ namespace MassTransit.Prometheus
         internal static ICounter ErrorCounter(string messageType)
             => _errorCounter.Labels(_serviceName, messageType);
 
-        internal static void TryConfigure(IMetrics metrics, string serviceName)
+        internal static void TryConfigure(string serviceName)
         {
             if (_isConfigured) return;
 
-            var bounds = new[] {0, .005, .01, .025, .05, .075, .1, .25, .5, .75, 1, 2.5, 5, 7.5, 10, 30, 60, 120, 180, 240, 300};
+            var bounds = new[]
+                {0, .005, .01, .025, .05, .075, .1, .25, .5, .75, 1, 2.5, 5, 7.5, 10, 30, 60, 120, 180, 240, 300};
 
             _serviceName = serviceName;
 
-            _consumerTimer = metrics.Histogram()
-                .Buckets(bounds)
-                .Name("app_message_processing_time_seconds")
-                .Help("The time to consume a message, in seconds.")
-                .LabelNames("service_name", "message_type")
-                .Register();
+            _consumerTimer = Metrics.CreateHistogram(
+                "app_message_processing_time_seconds",
+                "The time to consume a message, in seconds.",
+                new HistogramConfiguration
+                {
+                    LabelNames = new[] {"service_name", "message_type"},
+                    Buckets = bounds
+                });
 
-            _criticalTimer = metrics.Histogram()
-                .Buckets(bounds)
-                .Name("app_message_critical_time_seconds")
-                .Help("The time between when message is sent and when it is consumed, in seconds.")
-                .LabelNames("service_name", "message_type")
-                .Register();
+            _criticalTimer = Metrics.CreateHistogram(
+                "app_message_critical_time_seconds",
+                "The time between when message is sent and when it is consumed, in seconds.",
+                new HistogramConfiguration
+                {
+                    LabelNames = new[] {"service_name", "message_type"},
+                    Buckets = bounds
+                });
 
-            _messageCounter = metrics.Counter()
-                .Name("app_message_count")
-                .Help("The number of messages received.")
-                .LabelNames("service_name", "message_type")
-                .Register();
+            _messageCounter = Metrics.CreateCounter(
+                "app_message_count",
+                "The number of messages received.",
+                new CounterConfiguration { LabelNames = new[] {"service_name", "message_type"} });
 
-            _errorCounter = metrics.Counter()
-                .Name("app_message_failures_count")
-                .Help("The number of message processing failures.")
-                .LabelNames("service_name", "message_type")
-                .Register();
+            _errorCounter = Metrics.CreateCounter(
+                "app_message_failures_count",
+                "The number of message processing failures.",
+                new CounterConfiguration{LabelNames = new []{"service_name", "message_type"}});
 
             _isConfigured = true;
         }
 
+        internal static async Task MeasureConsume(Func<Task> action, string messageType)
+        {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            await action();
+
+            stopwatch.Stop();
+            ConsumeTimer(messageType).Observe(stopwatch.ElapsedTicks / (double) Stopwatch.Frequency);
+        }
+
         private static bool _isConfigured;
         private static string _serviceName;
-        private static ILabelledHistogram _consumerTimer;
-        private static ILabelledHistogram _criticalTimer;
-        private static ILabelledCounter _messageCounter;
-        private static ILabelledCounter _errorCounter;
+        private static Histogram _consumerTimer;
+        private static Histogram _criticalTimer;
+        private static Counter _messageCounter;
+        private static Counter _errorCounter;
     }
 }

@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using Nexogen.Libraries.Metrics.Extensions;
+using System.Threading.Tasks;
 
 namespace MassTransit.Prometheus
 {
@@ -22,10 +22,10 @@ namespace MassTransit.Prometheus
                     .Observe((DateTime.UtcNow - _context.SentTime.Value).TotalSeconds);
         }
 
-        internal void CountMessage() => PrometheusMetrics.MessageCounter(_messageType).Increment();
+        internal void CountMessage() => PrometheusMetrics.MessageCounter(_messageType).Inc();
 
-        internal void CountError() => PrometheusMetrics.ErrorCounter(_messageType).Increment();
+        internal void CountError() => PrometheusMetrics.ErrorCounter(_messageType).Inc();
 
-        internal IDisposable ConsumeTimer() => PrometheusMetrics.ConsumeTimer(_messageType).Timer();
+        internal Task Measure(Func<Task> action) => PrometheusMetrics.MeasureConsume(action, _messageType);
     }
 }
