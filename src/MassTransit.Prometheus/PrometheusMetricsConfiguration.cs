@@ -4,7 +4,7 @@ using GreenPipes;
 
 namespace MassTransit.Prometheus
 {
-    public static class PrometheusMiddlewareConfiguration
+    public static class PrometheusMetricsConfiguration
     {
         public static void UsePrometheusMetrics<T>(this IPipeConfigurator<T> configurator,
             string serviceName = null)
@@ -20,6 +20,11 @@ namespace MassTransit.Prometheus
 
         public static void ConnectMetrics(this IBusControl busControl, string serviceName = "")
         {
+            PrometheusMetrics.TryConfigure(
+                string.IsNullOrWhiteSpace(serviceName)
+                    ? Path.GetFileNameWithoutExtension(Process.GetCurrentProcess().MainModule.FileName)
+                    : serviceName);
+
             busControl.ConnectReceiveObserver(new PrometheusMetricsObservers(serviceName));
         }
     }
