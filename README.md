@@ -35,7 +35,7 @@ Metrics need to be available via an HTTP endpoint, by default it is `/metrics`. 
 dotnet add package prometheus-net.AspCore
 ``` 
 
-Then, call our static method `PrometheusMetrics.TryConfigure` to have metrics initialised, then use one of two ways to register metrics for MassTransit.
+Then use one of two ways to register metrics for MassTransit, shown below.
 
 > IMPORTANT: Don't use both ways, otherwise you get all counters doubled.
 
@@ -93,7 +93,7 @@ public void ConfigureServices(IServiceCollection services)
                 e.Consumer<MyMessageConsumer>();
             });
         });
-    busControl.Connect
+    busControl.ConnectMetrics("my_service");
 
     // this registration is simplified
     services.AddSingleton(bus);
