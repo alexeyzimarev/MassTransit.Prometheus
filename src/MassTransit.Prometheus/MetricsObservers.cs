@@ -1,16 +1,10 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace MassTransit.Prometheus
 {
     public class PrometheusMetricsObservers : IReceiveObserver
     {
-        public PrometheusMetricsObservers(string serviceName)
-        {
-            PrometheusMetrics.TryConfigure(serviceName);
-        }
-
         public Task PreReceive(ReceiveContext context) => Task.CompletedTask;
 
         public Task PostReceive(ReceiveContext context) => Task.CompletedTask;

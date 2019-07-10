@@ -6,12 +6,12 @@ namespace MassTransit.Prometheus
 {
     internal class ConsumerMetrics
     {
-        private readonly string _messageType;
-        private readonly ConsumeContext _context;
+        readonly string _messageType;
+        readonly ConsumeContext _context;
 
-        internal ConsumerMetrics(ConsumeContext context)
+        internal ConsumerMetrics(ConsumeContext context, ParseMessageType parseMessageType)
         {
-            _messageType = context.SupportedMessageTypes.FirstOrDefault() ?? "unknown";
+            _messageType = parseMessageType(context.SupportedMessageTypes);
             _context = context;
         }
 

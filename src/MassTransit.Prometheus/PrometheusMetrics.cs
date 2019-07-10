@@ -19,42 +19,40 @@ namespace MassTransit.Prometheus
         internal static ICounter ErrorCounter(string messageType)
             => _errorCounter.Labels(_serviceName, messageType);
 
-        internal static void TryConfigure(string serviceName)
+        internal static void TryConfigure(string serviceName, PrometheusMetricsOptions options)
         {
             if (_isConfigured) return;
 
-            var bounds = new[]
-                {0, .005, .01, .025, .05, .075, .1, .25, .5, .75, 1, 2.5, 5, 7.5, 10, 30, 60, 120, 180, 240, 300};
-
             _serviceName = serviceName;
+            var labels = new[] {options.ServiceNameLabel, options.MessageTypeLabel};
 
             _consumerTimer = Metrics.CreateHistogram(
-                "app_message_processing_time_seconds",
+                options.ConsumerTimerMetricName,
                 "The time to consume a message, in seconds.",
                 new HistogramConfiguration
                 {
-                    LabelNames = new[] {"service_name", "message_type"},
-                    Buckets = bounds
+                    LabelNames = labels,
+                    Buckets = options.HistogramBuckets
                 });
 
             _criticalTimer = Metrics.CreateHistogram(
-                "app_message_critical_time_seconds",
+                options.CriticalTimerMetricName,
                 "The time between when message is sent and when it is consumed, in seconds.",
                 new HistogramConfiguration
                 {
-                    LabelNames = new[] {"service_name", "message_type"},
-                    Buckets = bounds
+                    LabelNames = labels,
+                    Buckets = options.HistogramBuckets
                 });
 
             _messageCounter = Metrics.CreateCounter(
-                "app_message_count",
+                options.MessageCounterMetricName,
                 "The number of messages received.",
-                new CounterConfiguration { LabelNames = new[] {"service_name", "message_type"} });
+                new CounterConfiguration {LabelNames = labels});
 
             _errorCounter = Metrics.CreateCounter(
-                "app_message_failures_count",
+                options.ErrorCounterMetricName,
                 "The number of message processing failures.",
-                new CounterConfiguration{LabelNames = new []{"service_name", "message_type"}});
+                new CounterConfiguration {LabelNames = labels});
 
             _isConfigured = true;
         }
@@ -70,11 +68,11 @@ namespace MassTransit.Prometheus
             ConsumeTimer(messageType).Observe(stopwatch.ElapsedTicks / (double) Stopwatch.Frequency);
         }
 
-        private static bool _isConfigured;
-        private static string _serviceName;
-        private static Histogram _consumerTimer;
-        private static Histogram _criticalTimer;
-        private static Counter _messageCounter;
-        private static Counter _errorCounter;
+        static bool _isConfigured;
+        static string _serviceName;
+        static Histogram _consumerTimer;
+        static Histogram _criticalTimer;
+        static Counter _messageCounter;
+        static Counter _errorCounter;
     }
 }
